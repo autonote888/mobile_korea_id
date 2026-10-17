@@ -46,3 +46,8 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Large Document & Audio Sources (EPS-TOPIK PDF & MP3s)
+dokumen/
+scratch/
+

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_theme.dart';
 import 'tab_translator_grammar.dart';
 import 'tab_dictionary.dart';
+import 'tab_standard_practice.dart';
 import 'tab_exam_levels.dart';
 
 /// Main Root Navigation Screen wrapping Material 3 NavigationBar.
@@ -25,6 +26,7 @@ class _HomeNavigationScreenState extends State<HomeNavigationScreen> {
   final List<Widget> _pages = const [
     TabTranslatorGrammar(),
     TabDictionary(),
+    TabStandardPractice(),
     TabExamLevels(),
   ];
 
@@ -125,12 +127,17 @@ class _HomeNavigationScreenState extends State<HomeNavigationScreen> {
           NavigationDestination(
             icon: Icon(Icons.menu_book_rounded),
             selectedIcon: Icon(Icons.menu_book_rounded, color: AppTheme.primaryIndigo),
-            label: 'Kamus Trilingual',
+            label: 'Kamus',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.school_rounded),
+            selectedIcon: Icon(Icons.school_rounded, color: AppTheme.primaryIndigo),
+            label: 'Latihan',
           ),
           NavigationDestination(
             icon: Icon(Icons.military_tech_rounded),
             selectedIcon: Icon(Icons.military_tech_rounded, color: AppTheme.primaryIndigo),
-            label: 'Latihan Ujian',
+            label: 'Ujian',
           ),
         ],
       ),

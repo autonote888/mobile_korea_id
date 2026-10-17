@@ -14,7 +14,7 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
 
   static const String _dbName = 'dictionary.db';
-  static const int _dbVersion = 1;
+  static const int _dbVersion = 2;
 
   Database? _database;
 
@@ -69,6 +69,9 @@ class DatabaseHelper {
           onCreate: (db, version) async {
             await _createSchemaAndSeed(db);
           },
+          onUpgrade: (db, oldV, newV) async {
+            await _createSchemaAndSeed(db);
+          },
         );
       }
     }
@@ -78,6 +81,9 @@ class DatabaseHelper {
       path,
       version: _dbVersion,
       onCreate: (db, version) async {
+        await _createSchemaAndSeed(db);
+      },
+      onUpgrade: (db, oldV, newV) async {
         await _createSchemaAndSeed(db);
       },
     );
@@ -94,6 +100,20 @@ class DatabaseHelper {
       );
     ''');
 
+    // Self-healing / Upgrade check: ensure 'category' column exists and enriched data is seeded
+    try {
+      final info = await db.rawQuery('PRAGMA table_info(dictionary)');
+      final hasCategory = info.any((col) => col['name'] == 'category');
+      final count = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM dictionary')) ?? 0;
+
+      if (!hasCategory || count < 150) {
+        if (kDebugMode) print('[DatabaseHelper] Upgrading dictionary to V2 schema with 230+ entries...');
+        await _createSchemaAndSeed(db);
+      }
+    } catch (e) {
+      if (kDebugMode) print('[DatabaseHelper] Self-healing migration error: $e');
+    }
+
     return db;
   }
 
@@ -108,6 +128,7 @@ class DatabaseHelper {
           await db.execute(trimmed);
         }
       }
+      if (kDebugMode) print('[DatabaseHelper] Schema and seed data executed successfully.');
     } catch (e) {
       if (kDebugMode) print('[DatabaseHelper] Fallback schema execution error: $e');
     }
@@ -118,36 +139,44 @@ class DatabaseHelper {
   // --------------------------------------------------------------------------
 
   /// Performs an instant, debounced search across Korean, Indonesian, and English.
+  /// Supports optional POS and Category (Aktivitas) filters.
   Future<List<DictionaryItem>> searchDictionary(
     String query, {
     String? posFilter,
-    int limit = 100,
+    String? categoryFilter,
+    int limit = 300,
   }) async {
     final db = await database;
     final cleanQuery = query.trim();
 
-    String whereClause = '';
+    List<String> conditions = [];
     List<dynamic> whereArgs = [];
 
-    final hasQuery = cleanQuery.isNotEmpty;
-    final hasPos = posFilter != null && posFilter.isNotEmpty && posFilter != 'Semua' && posFilter != 'All';
-
-    if (hasQuery && hasPos) {
-      whereClause = '(korean_hangul LIKE ? OR korean_roman LIKE ? OR indonesian LIKE ? OR english LIKE ?) AND pos = ?';
+    if (cleanQuery.isNotEmpty) {
+      conditions.add('(korean_hangul LIKE ? OR korean_roman LIKE ? OR indonesian LIKE ? OR english LIKE ?)');
       final pattern = '%$cleanQuery%';
-      whereArgs = [pattern, pattern, pattern, pattern, posFilter];
-    } else if (hasQuery) {
-      whereClause = 'korean_hangul LIKE ? OR korean_roman LIKE ? OR indonesian LIKE ? OR english LIKE ?';
-      final pattern = '%$cleanQuery%';
-      whereArgs = [pattern, pattern, pattern, pattern];
-    } else if (hasPos) {
-      whereClause = 'pos = ?';
-      whereArgs = [posFilter];
+      whereArgs.addAll([pattern, pattern, pattern, pattern]);
     }
+
+    if (posFilter != null && posFilter.isNotEmpty && posFilter != 'Semua' && posFilter != 'All') {
+      conditions.add('pos = ?');
+      whereArgs.add(posFilter);
+    }
+
+    if (categoryFilter != null &&
+        categoryFilter.isNotEmpty &&
+        categoryFilter != 'Semua' &&
+        categoryFilter != 'Semua Kegiatan' &&
+        categoryFilter != 'All') {
+      conditions.add('category = ?');
+      whereArgs.add(categoryFilter);
+    }
+
+    final whereClause = conditions.isNotEmpty ? conditions.join(' AND ') : null;
 
     final List<Map<String, dynamic>> maps = await db.query(
       'dictionary',
-      where: whereClause.isNotEmpty ? whereClause : null,
+      where: whereClause,
       whereArgs: whereArgs.isNotEmpty ? whereArgs : null,
       orderBy: 'korean_hangul ASC',
       limit: limit,
@@ -163,6 +192,15 @@ class DatabaseHelper {
       'SELECT DISTINCT pos FROM dictionary ORDER BY pos ASC',
     );
     return results.map((row) => row['pos'] as String).toList();
+  }
+
+  /// Retrieves all unique Activity Categories available in the dictionary.
+  Future<List<String>> getAllActivityCategories() async {
+    final db = await database;
+    final List<Map<String, dynamic>> results = await db.rawQuery(
+      'SELECT DISTINCT category FROM dictionary WHERE category IS NOT NULL AND category != "" ORDER BY category ASC',
+    );
+    return results.map((row) => row['category'] as String).toList();
   }
 
   // --------------------------------------------------------------------------
@@ -181,6 +219,12 @@ class DatabaseHelper {
     for (final map in packagesMap) {
       final packageId = map['id'] as int;
 
+      // Query dynamic question count to always reflect true question count in DB
+      final countRes = Sqflite.firstIntValue(await db.rawQuery(
+        'SELECT COUNT(*) FROM exam_questions WHERE package_id = ?',
+        [packageId],
+      )) ?? (map['total_questions'] as int? ?? 0);
+
       // Query best score from user_quiz_history
       final history = await db.rawQuery('''
         SELECT MAX(score) as best_score, MAX(percentage) as best_pct 
@@ -197,7 +241,14 @@ class DatabaseHelper {
         bestPct = numPct?.toDouble();
       }
 
-      list.add(ExamPackage.fromMap(map, bestScore: bestScore, bestPercentage: bestPct));
+      list.add(ExamPackage(
+        id: packageId,
+        title: map['title'] as String? ?? '',
+        level: map['level'] as int? ?? 1,
+        totalQuestions: countRes,
+        bestScore: bestScore,
+        bestPercentage: bestPct,
+      ));
     }
 
     return list;

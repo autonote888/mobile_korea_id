@@ -296,6 +296,9 @@ class KoreanGrammarEngine {
     'father': _SubjectInfo('아버지', 'Father', false),
     'adik': _SubjectInfo('동생', 'Younger sibling', true),
     'kakak': _SubjectInfo('형', 'Older brother', true),
+    'mahasiswa': _SubjectInfo('대학생', 'University student', true),
+    'pegawai': _SubjectInfo('회사원', 'Office worker', true),
+    'dokter': _SubjectInfo('의사', 'Doctor', false),
   };
 
   static final Map<String, _PlaceInfo> _places = {
@@ -304,6 +307,9 @@ class KoreanGrammarEngine {
     'house': _PlaceInfo('집', 'House', true),
     'sekolah': _PlaceInfo('학교', 'School', false),
     'school': _PlaceInfo('학교', 'School', false),
+    'universitas': _PlaceInfo('대학교', 'University', false),
+    'kampus': _PlaceInfo('대학교', 'Campus', false),
+    'university': _PlaceInfo('대학교', 'University', false),
     'perpustakaan': _PlaceInfo('도서관', 'Library', true),
     'library': _PlaceInfo('도서관', 'Library', true),
     'restoran': _PlaceInfo('식당', 'Restaurant', true),
@@ -312,6 +318,14 @@ class KoreanGrammarEngine {
     'office': _PlaceInfo('사무실', 'Office', true),
     'pasar': _PlaceInfo('시장', 'Market', true),
     'market': _PlaceInfo('시장', 'Market', true),
+    'supermarket': _PlaceInfo('마트', 'Supermarket', false),
+    'mart': _PlaceInfo('마트', 'Supermarket', false),
+    'apotek': _PlaceInfo('약국', 'Pharmacy', true),
+    'pharmacy': _PlaceInfo('약국', 'Pharmacy', true),
+    'rumah sakit': _PlaceInfo('병원', 'Hospital', true),
+    'hospital': _PlaceInfo('병원', 'Hospital', true),
+    'stasiun': _PlaceInfo('역', 'Station', true),
+    'station': _PlaceInfo('역', 'Station', true),
     'taman': _PlaceInfo('공원', 'Park', true),
     'park': _PlaceInfo('공원', 'Park', true),
     'kafe': _PlaceInfo('카페', 'Cafe', false),
@@ -339,6 +353,8 @@ class KoreanGrammarEngine {
     'coffee': _ObjectInfo('커피', 'Coffee', false),
     'teh': _ObjectInfo('차', 'Tea', false),
     'tea': _ObjectInfo('차', 'Tea', false),
+    'obat': _ObjectInfo('약', 'Medicine', true),
+    'medicine': _ObjectInfo('약', 'Medicine', true),
     'film': _ObjectInfo('영화', 'Movie', false),
     'movie': _ObjectInfo('영화', 'Movie', false),
     'musik': _ObjectInfo('음악', 'Music', true),
@@ -431,6 +447,16 @@ class KoreanGrammarEngine {
     String? placeOriginal;
     for (final entry in _places.entries) {
       final key = entry.key;
+      if (key == 'korea' && (lower.contains('bahasa korea') || lower.contains('korean'))) {
+        if (!lower.contains('di korea') && !lower.contains('in korea')) {
+          continue;
+        }
+      }
+      if (key == 'indonesia' && (lower.contains('bahasa indonesia') || lower.contains('indonesian'))) {
+        if (!lower.contains('di indonesia') && !lower.contains('in indonesia')) {
+          continue;
+        }
+      }
       final reg = RegExp(r'\b' + RegExp.escape(key) + r'\b');
       if (reg.hasMatch(lower)) {
         foundPlace = entry.value;

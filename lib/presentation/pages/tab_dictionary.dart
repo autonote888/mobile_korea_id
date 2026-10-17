@@ -9,6 +9,9 @@ import '../widgets/tts_speaker_button.dart';
 import '../widgets/turtle_slow_button.dart';
 
 /// Halaman 2: Kamus Trilingual (Korea - Indonesia - Inggris) 100% Offline.
+/// Dilengkapi pembagian aktivitas tematik (Perkenalan Diri, Belanja/Mart, Tidur/Rutinitas, Arah Jalan, dll.),
+/// Pronoun lengkap (saya, kamu, kami, kita, bersama, sendiri), audio normal & kura-kura lambat,
+/// dan tata letak yang 100% responsif bebas overflow/overload.
 class TabDictionary extends StatefulWidget {
   const TabDictionary({super.key});
 
@@ -22,16 +25,35 @@ class _TabDictionaryState extends State<TabDictionary> {
 
   List<DictionaryItem> _items = [];
   bool _isLoading = true;
+
+  String _selectedCategory = 'Semua Kegiatan';
   String _selectedPos = 'Semua';
+
+  final List<String> _categoryFilters = [
+    'Semua Kegiatan',
+    'Perkenalan Diri',
+    'Kata Ganti & Sosial',
+    'Belanja & Supermarket',
+    'Tidur & Rutinitas',
+    'Arah & Jalan',
+    'Restoran & Makan',
+    'Transportasi',
+    'Kesehatan & Darurat',
+    'Kantor & Belajar',
+    'Emosi & Cuaca',
+    'Percakapan Umum',
+    'Tata Bahasa & Partikel',
+  ];
 
   final List<String> _posFilters = [
     'Semua',
+    'Pronoun',
     'Noun',
     'Verb',
     'Adjective',
-    'Particle',
+    'Adverb',
     'Phrase',
-    'Pronoun',
+    'Particle',
   ];
 
   @override
@@ -60,6 +82,7 @@ class _TabDictionaryState extends State<TabDictionary> {
     final results = await DatabaseHelper.instance.searchDictionary(
       query,
       posFilter: _selectedPos,
+      categoryFilter: _selectedCategory,
     );
     if (mounted) {
       setState(() {
@@ -80,21 +103,25 @@ class _TabDictionaryState extends State<TabDictionary> {
       ),
       builder: (ctx) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.65,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
+          initialChildSize: 0.70,
+          minChildSize: 0.45,
+          maxChildSize: 0.95,
           expand: false,
           builder: (context, scrollController) {
             final isVerbOrAdj = item.pos == 'Verb' || item.pos == 'Adjective';
+            final catColor = _getCategoryColor(item.category);
+            final posColor = _getPosColor(item.pos);
+
             return SingleChildScrollView(
               controller: scrollController,
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Handle bar
                   Center(
                     child: Container(
-                      width: 40,
+                      width: 44,
                       height: 4,
                       decoration: BoxDecoration(
                         color: Colors.grey.withValues(alpha: 0.3),
@@ -104,73 +131,100 @@ class _TabDictionaryState extends State<TabDictionary> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Header with Hangul, Reading & Audio Buttons
+                  // Header Badges Row
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.koreanHangul,
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w800,
-                                color: isDark ? AppTheme.textPrimaryDark : AppTheme.primaryDarkIndigo,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            Text(
-                              'Bacaan: [${item.koreanRoman}]',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.accentCyan,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: _getPosColor(item.pos).withValues(alpha: 0.12),
+                          color: catColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                          border: Border.all(color: _getPosColor(item.pos).withValues(alpha: 0.3)),
+                          border: Border.all(color: catColor.withValues(alpha: 0.3)),
                         ),
                         child: Text(
-                          item.pos,
+                          item.category,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: _getPosColor(item.pos),
+                            color: catColor,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: posColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                          border: Border.all(color: posColor.withValues(alpha: 0.3)),
+                        ),
+                        child: Text(
+                          item.pos,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: posColor,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
                       TurtleSlowButton(text: item.koreanHangul, size: 22),
                       const SizedBox(width: 4),
                       TtsSpeakerButton(text: item.koreanHangul, size: 24),
                     ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Main Hangul Title (Multi-line safe)
+                  SelectableText(
+                    item.koreanHangul,
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? AppTheme.textPrimaryDark : AppTheme.primaryDarkIndigo,
+                      letterSpacing: -0.5,
+                      height: 1.25,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Pronunciation / Reading
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentCyan.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Bacaan: [${item.koreanRoman}]',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.accentCyan,
+                      ),
+                    ),
                   ),
                   const Divider(height: 28),
 
                   // Translations Card
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTranslationRow('🇮🇩 Indonesia', item.indonesian, isDark),
-                        const SizedBox(height: 8),
-                        _buildTranslationRow('🇬🇧 English', item.english, isDark),
+                        _buildTranslationRow('Arti (ID)', item.indonesian, isDark),
+                        const SizedBox(height: 10),
+                        _buildTranslationRow('English', item.english, isDark),
+                        if (item.sentencePattern != null && item.sentencePattern!.isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          _buildTranslationRow('Pola / Peran', item.sentencePattern!, isDark),
+                        ],
                       ],
                     ),
                   ),
@@ -196,14 +250,14 @@ class _TabDictionaryState extends State<TabDictionary> {
     );
   }
 
-  Widget _buildTranslationRow(String flagLabel, String value, bool isDark) {
+  Widget _buildTranslationRow(String label, String value, bool isDark) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 105,
+          width: 90,
           child: Text(
-            flagLabel,
+            label,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -212,12 +266,13 @@ class _TabDictionaryState extends State<TabDictionary> {
           ),
         ),
         Expanded(
-          child: Text(
+          child: SelectableText(
             value,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+              height: 1.3,
             ),
           ),
         ),
@@ -242,16 +297,20 @@ class _TabDictionaryState extends State<TabDictionary> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const Icon(Icons.sync_alt_rounded, size: 16, color: AppTheme.predicateColor),
-              const SizedBox(width: 6),
-              const Text(
-                'Tabel Konjugasi Predikat Otomatis:',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.predicateColor,
+              Icon(Icons.sync_alt_rounded, size: 16, color: AppTheme.predicateColor),
+              SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Tabel Konjugasi Predikat Otomatis:',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.predicateColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -261,7 +320,7 @@ class _TabDictionaryState extends State<TabDictionary> {
           _buildConjugationRow('Informal Sopan (-아요/어요)', informal, isDark),
           _buildConjugationRow('Formal Sopan (-ㅂ니다/습니다)', formal, isDark),
           _buildConjugationRow('Bentuk Lampau (-았/었어요)', past, isDark),
-          _buildConjugationRow('Rencana/Masa Depan (-(으)ㄹ 거예요)', future, isDark),
+          _buildConjugationRow('Masa Depan (-(으)ㄹ 거예요)', future, isDark),
         ],
       ),
     );
@@ -273,24 +332,65 @@ class _TabDictionaryState extends State<TabDictionary> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+          Flexible(
+            flex: 6,
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          Text(
-            result,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : AppTheme.textPrimaryLight,
+          const SizedBox(width: 8),
+          Flexible(
+            flex: 5,
+            child: Text(
+              result,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : AppTheme.textPrimaryLight,
+              ),
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
     );
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category) {
+      case 'Perkenalan Diri':
+        return AppTheme.primaryIndigo;
+      case 'Kata Ganti & Sosial':
+        return AppTheme.accentAmber;
+      case 'Belanja & Supermarket':
+        return AppTheme.accentMint;
+      case 'Tidur & Rutinitas':
+        return const Color(0xFF8B5CF6);
+      case 'Arah & Jalan':
+        return AppTheme.accentCyan;
+      case 'Restoran & Makan':
+        return AppTheme.accentCoral;
+      case 'Transportasi':
+        return const Color(0xFF0284C7);
+      case 'Kesehatan & Darurat':
+        return const Color(0xFFEF4444);
+      case 'Kantor & Belajar':
+        return const Color(0xFF10B981);
+      case 'Emosi & Cuaca':
+        return const Color(0xFFF59E0B);
+      case 'Percakapan Umum':
+        return AppTheme.primaryDarkIndigo;
+      case 'Tata Bahasa & Partikel':
+        return AppTheme.accentCyan;
+      default:
+        return AppTheme.primaryIndigo;
+    }
   }
 
   Color _getPosColor(String pos) {
@@ -307,6 +407,8 @@ class _TabDictionaryState extends State<TabDictionary> {
         return AppTheme.accentMint;
       case 'Pronoun':
         return AppTheme.accentAmber;
+      case 'Adverb':
+        return const Color(0xFF8B5CF6);
       default:
         return AppTheme.primaryIndigo;
     }
@@ -322,7 +424,7 @@ class _TabDictionaryState extends State<TabDictionary> {
           children: [
             // Top App Bar Area
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -340,37 +442,37 @@ class _TabDictionaryState extends State<TabDictionary> {
                           size: 20,
                         ),
                       ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Kamus Trilingual Offline',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
-                                  letterSpacing: -0.3,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Kamus Trilingual Offline',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                                letterSpacing: -0.3,
                               ),
-                              Text(
-                                'Bahasa Korea • Indonesia • Inggris (${_items.length} kosakata)',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              'Bahasa Korea • Indonesia • Inggris (${_items.length} kosakata)',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
                               ),
-                            ],
-                          ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  const SizedBox(height: 14),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
 
                   // Search Bar with Debounce
                   Container(
@@ -386,7 +488,7 @@ class _TabDictionaryState extends State<TabDictionary> {
                       controller: _searchController,
                       onChanged: _onSearchChanged,
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
                       ),
@@ -413,6 +515,48 @@ class _TabDictionaryState extends State<TabDictionary> {
                   ),
                   const SizedBox(height: 10),
 
+                  // Category Activity Filter Chips (Belanja, Tidur, Arah, Perkenalan, dll)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: _categoryFilters.map((cat) {
+                        final isSelected = _selectedCategory == cat;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6.0),
+                          child: ChoiceChip(
+                            label: Text(cat),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() => _selectedCategory = cat);
+                                _loadDictionary();
+                              }
+                            },
+                            selectedColor: AppTheme.primaryIndigo,
+                            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                            labelStyle: TextStyle(
+                              fontSize: 11,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight),
+                            ),
+                            showCheckmark: false,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                              side: BorderSide(
+                                color: isSelected ? AppTheme.primaryIndigo : Colors.transparent,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+
                   // POS Filter Chips
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
@@ -431,19 +575,23 @@ class _TabDictionaryState extends State<TabDictionary> {
                                 _loadDictionary();
                               }
                             },
-                            selectedColor: AppTheme.primaryIndigo,
-                            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                            selectedColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                            backgroundColor: Colors.transparent,
                             labelStyle: TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
                               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                              color: isSelected ? Colors.white : (isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight),
+                              color: isSelected
+                                  ? (isDark ? Colors.white : AppTheme.primaryDarkIndigo)
+                                  : (isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight),
                             ),
                             showCheckmark: false,
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                               side: BorderSide(
-                                color: isSelected ? AppTheme.primaryIndigo : Colors.transparent,
+                                color: isSelected
+                                    ? (isDark ? AppTheme.borderDark : AppTheme.primaryIndigo)
+                                    : (isDark ? Colors.white12 : Colors.black12),
                               ),
                             ),
                           ),
@@ -455,7 +603,7 @@ class _TabDictionaryState extends State<TabDictionary> {
               ),
             ),
 
-            // Dictionary List View
+            // Dictionary List View (Guaranteed 100% Overflow-Free)
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -481,18 +629,19 @@ class _TabDictionaryState extends State<TabDictionary> {
                         )
                       : ListView.separated(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                          padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
                           itemCount: _items.length,
                           separatorBuilder: (context, index) => const SizedBox(height: 10),
                           itemBuilder: (context, index) {
                             final item = _items[index];
+                            final catColor = _getCategoryColor(item.category);
                             final posColor = _getPosColor(item.pos);
 
                             return InkWell(
                               onTap: () => _showItemDetails(item),
                               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                               child: Container(
-                                padding: const EdgeInsets.all(14),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                                 decoration: BoxDecoration(
                                   color: isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
                                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -501,100 +650,135 @@ class _TabDictionaryState extends State<TabDictionary> {
                                   ),
                                   boxShadow: AppTheme.cardShadow,
                                 ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // 1. Text Info: Arti -> Bacaan [roman] -> Aksara Hangul
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          // Baris 1: Arti (ID) & Bacaan (Romanisasi)
-                                          Row(
-                                            children: [
-                                              Flexible(
-                                                child: Text(
-                                                  item.indonesian,
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
-                                                  ),
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                                                decoration: BoxDecoration(
-                                                  color: AppTheme.accentCyan.withValues(alpha: 0.12),
-                                                  borderRadius: BorderRadius.circular(4),
-                                                ),
-                                                child: Text(
-                                                  '[${item.koreanRoman}]',
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: AppTheme.accentCyan,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 3),
-
-                                          // Baris 2: Aksara Hangul & Bahasa Inggris
-                                          Row(
-                                            children: [
-                                              Text(
-                                                item.koreanHangul,
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: isDark ? Colors.white : AppTheme.primaryDarkIndigo,
-                                                  letterSpacing: -0.3,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Flexible(
-                                                child: Text(
-                                                  item.english,
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
-                                                  ),
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    // 2. Right Side: POS Badge + TurtleSlowButton + TtsSpeakerButton
+                                    // Baris 1: Arti (ID) & Tag Kategori
                                     Row(
-                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
+                                        Expanded(
+                                          child: Text(
+                                            item.indonesian,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w700,
+                                              color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
-                                            color: posColor.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(6),
-                                            border: Border.all(color: posColor.withValues(alpha: 0.3)),
+                                            color: catColor.withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                                            border: Border.all(color: catColor.withValues(alpha: 0.25)),
                                           ),
                                           child: Text(
-                                            item.pos,
+                                            item.category,
                                             style: TextStyle(
-                                              fontSize: 9,
+                                              fontSize: 9.5,
                                               fontWeight: FontWeight.w700,
-                                              color: posColor,
+                                              color: catColor,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+
+                                    // Baris 2: Bacaan / Romanisasi & Arti Bahasa Inggris
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          flex: 6,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.accentCyan.withValues(alpha: 0.12),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              '[${item.koreanRoman}]',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: AppTheme.accentCyan,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 2),
-                                        TurtleSlowButton(text: item.koreanHangul, size: 17),
-                                        TtsSpeakerButton(text: item.koreanHangul, size: 18),
+                                        if (item.english.isNotEmpty) ...[
+                                          const SizedBox(width: 8),
+                                          Flexible(
+                                            flex: 5,
+                                            child: Text(
+                                              item.english,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: isDark
+                                                    ? AppTheme.textSecondaryDark
+                                                    : AppTheme.textSecondaryLight,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+
+                                    // Baris 3: Aksara Hangul & Tombol Audio
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            item.koreanHangul,
+                                            style: TextStyle(
+                                              fontSize: 19,
+                                              fontWeight: FontWeight.w800,
+                                              color: isDark ? Colors.white : AppTheme.primaryDarkIndigo,
+                                              letterSpacing: -0.3,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                              margin: const EdgeInsets.only(right: 3),
+                                              decoration: BoxDecoration(
+                                                color: posColor.withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                item.pos,
+                                                style: TextStyle(
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: posColor,
+                                                ),
+                                              ),
+                                            ),
+                                            TurtleSlowButton(text: item.koreanHangul, size: 17),
+                                            const SizedBox(width: 2),
+                                            TtsSpeakerButton(text: item.koreanHangul, size: 18),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   ],

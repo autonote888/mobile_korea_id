@@ -63,7 +63,7 @@ class _TabExamLevelsState extends State<TabExamLevels> {
   String _getLevelSubtitle(int level) {
     switch (level) {
       case 1:
-        return 'Pengenalan Hangeul, Suku Kata, & Partikel Dasar (은/는, 이/가, 을/를)';
+        return 'Tren TOPIK I Terkini (15 Soal): Hangeul, Perkenalan, Belanja, Arah, & Partikel';
       case 2:
         return 'Pola SOV Alami, Keterangan Tempat (에서/에) & Sarana (로/으로)';
       case 3:

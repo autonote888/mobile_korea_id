@@ -18,14 +18,15 @@ class _TabTranslatorGrammarState extends State<TabTranslatorGrammar> {
   GrammarSentenceResult? _currentResult;
 
   final List<String> _quickTemplates = [
-    'Saya makan nasi',
     'Saya makan roti',
+    'Saya pergi ke supermarket',
     'Budi membaca buku di perpustakaan',
     'Saya pergi ke sekolah',
-    'Adik minum susu',
-    'Saya belajar bahasa Korea',
+    'Mahasiswa belajar bahasa Korea',
+    'Adik minum susu di rumah',
     'I eat bread at home',
     'Minho menonton film di kafe',
+    'Saya membeli obat di apotek',
   ];
 
   @override

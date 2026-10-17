@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_korea_id/core/engine/hangul_speller.dart';
 import 'package:mobile_korea_id/core/engine/korean_grammar_engine.dart';
+import 'package:mobile_korea_id/data/models/dictionary_item.dart';
+import 'package:mobile_korea_id/data/repositories/standard_practice_repository.dart';
 
 void main() {
   group('HangulSpeller Unicode Mathematical Deconstructor Tests', () {
@@ -94,6 +96,72 @@ void main() {
     test('Transforms sentence with location: Budi membaca buku di perpustakaan', () {
       final result = KoreanGrammarEngine.parseSentence('Budi membaca buku di perpustakaan');
       expect(result.informalSentence, '부디는 도서관에서 책을 읽어요');
+    });
+
+    test('Transforms new situational vocabulary: supermarket, bread, student', () {
+      final r1 = KoreanGrammarEngine.parseSentence('Saya makan roti');
+      expect(r1.informalSentence, '저는 빵을 먹어요');
+
+      final r2 = KoreanGrammarEngine.parseSentence('Saya pergi ke supermarket');
+      expect(r2.informalSentence, '저는 마트에 가요');
+
+      final r3 = KoreanGrammarEngine.parseSentence('Mahasiswa belajar bahasa Korea');
+      expect(r3.informalSentence, '대학생은 한국어를 공부해요');
+    });
+  });
+
+  group('DictionaryItem Model & Category Tests', () {
+    test('Serializes and deserializes category property accurately', () {
+      final item = DictionaryItem(
+        indonesian: 'Supermarket / Mart',
+        english: 'Supermarket',
+        koreanHangul: '마트',
+        koreanRoman: 'mateu',
+        pos: 'Noun',
+        category: 'Belanja & Supermarket',
+      );
+
+      final map = item.toMap();
+      expect(map['category'], 'Belanja & Supermarket');
+
+      final fromMapItem = DictionaryItem.fromMap(map);
+      expect(fromMapItem.category, 'Belanja & Supermarket');
+      expect(fromMapItem.koreanHangul, '마트');
+    });
+  });
+
+  group('StandardPracticeRepository & Official Curriculum Tests', () {
+    test('Retrieves 7 official EPS-TOPIK learning levels', () {
+      final levels = StandardPracticeRepository.getAllLevels();
+      expect(levels.length, 7);
+      expect(levels[0].levelNumber, 1);
+      expect(levels[6].levelNumber, 7);
+      expect(levels[0].bookVolume.contains('Jilid 1'), isTrue);
+      expect(levels[6].bookVolume.contains('Jilid 2'), isTrue);
+    });
+
+    test('Retrieves specific chapter by Bab number', () {
+      final bab1 = StandardPracticeRepository.getChapterByBab(1);
+      expect(bab1, isNotNull);
+      expect(bab1!.titleKo, '자기소개');
+      expect(bab1.dialogues.isNotEmpty, isTrue);
+      expect(bab1.vocabularies.isNotEmpty, isTrue);
+      expect(bab1.grammarList.isNotEmpty, isTrue);
+      expect(bab1.exercises.isNotEmpty, isTrue);
+
+      final bab57 = StandardPracticeRepository.getChapterByBab(57);
+      expect(bab57, isNotNull);
+      expect(bab57!.titleKo, '고용허가제');
+      expect(bab57.volume, 'Jilid 2');
+    });
+
+    test('Searches chapters by keyword', () {
+      final searchResults = StandardPracticeRepository.searchChapters('자기소개');
+      expect(searchResults.isNotEmpty, isTrue);
+      expect(searchResults.first.babNumber, 1);
+
+      final searchFood = StandardPracticeRepository.searchChapters('restoran');
+      expect(searchFood.isNotEmpty, isTrue);
     });
   });
 }

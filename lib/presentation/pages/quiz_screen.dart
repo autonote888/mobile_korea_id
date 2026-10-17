@@ -422,38 +422,47 @@ class _QuizScreenState extends State<QuizScreen> {
                             ),
                             const Divider(height: 16),
                             Text(
-                              '🇮🇩 Penjelasan:',
+                              '🇮🇩 Petunjuk Penyelesaian (Bahasa Indonesia):',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 3),
                             Text(
                               question.explanationId,
                               style: TextStyle(
-                                fontSize: 12,
-                                height: 1.4,
+                                fontSize: 12.5,
+                                height: 1.45,
                                 color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '🇬🇧 Explanation:',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
-                              ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '🇰🇷 핵심 해설 & 힌트 (한국어):',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? AppTheme.accentCyan : AppTheme.primaryIndigo,
+                                    ),
+                                  ),
+                                ),
+                                TurtleSlowButton(text: question.explanationEn, size: 16),
+                                const SizedBox(width: 2),
+                                TtsSpeakerButton(text: question.explanationEn, size: 16),
+                              ],
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 3),
                             Text(
                               question.explanationEn,
                               style: TextStyle(
-                                fontSize: 12,
-                                height: 1.4,
-                                color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                                fontSize: 12.5,
+                                height: 1.45,
+                                color: isDark ? Colors.white : AppTheme.primaryDarkIndigo,
                               ),
                             ),
                           ],

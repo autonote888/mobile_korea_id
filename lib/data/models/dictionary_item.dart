@@ -6,7 +6,8 @@ class DictionaryItem {
   final String english;
   final String koreanHangul;
   final String koreanRoman;
-  final String pos; // Noun, Verb, Adjective, Particle, Phrase, Pronoun
+  final String pos; // Noun, Verb, Adjective, Particle, Phrase, Pronoun, Adverb
+  final String category; // e.g., 'Perkenalan Diri', 'Belanja & Supermarket', etc.
   final String? sentencePattern; // S, O, Place, V, A, Instrument
   final String? baseVerb;
 
@@ -17,6 +18,7 @@ class DictionaryItem {
     required this.koreanHangul,
     required this.koreanRoman,
     required this.pos,
+    this.category = 'Umum',
     this.sentencePattern,
     this.baseVerb,
   });
@@ -29,6 +31,7 @@ class DictionaryItem {
       koreanHangul: map['korean_hangul'] as String? ?? '',
       koreanRoman: map['korean_roman'] as String? ?? '',
       pos: map['pos'] as String? ?? 'Noun',
+      category: map['category'] as String? ?? 'Umum',
       sentencePattern: map['sentence_pattern'] as String?,
       baseVerb: map['base_verb'] as String?,
     );
@@ -42,6 +45,7 @@ class DictionaryItem {
       'korean_hangul': koreanHangul,
       'korean_roman': koreanRoman,
       'pos': pos,
+      'category': category,
       'sentence_pattern': sentencePattern,
       'base_verb': baseVerb,
     };
