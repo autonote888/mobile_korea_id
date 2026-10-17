@@ -87,6 +87,11 @@ class GrammarSentenceResult {
         return baseSentence;
     }
   }
+
+  String getRomanizationByFormality(FormalityLevel level) {
+    final sentence = getSentenceByFormality(level);
+    return HangulSpeller.romanizeText(sentence);
+  }
 }
 
 /// High-performance deterministic rule-based Korean grammar processor.
@@ -472,19 +477,20 @@ class KoreanGrammarEngine {
     // Subject Token (Topik: 은 / 는)
     final subjHasBatchim = HangulSpeller.hasBatchim(foundSubject.korean);
     final subjParticle = subjHasBatchim ? '은' : '는';
+    final fullSubj = '${foundSubject.korean}$subjParticle';
     tokens.add(GrammarToken(
       role: GrammarRole.subject,
       label: 'Subjek (주어)',
       originalText: subjectText,
       koreanCore: foundSubject.korean,
       particle: subjParticle,
-      fullKorean: '${foundSubject.korean}$subjParticle',
-      romanization: '${foundSubject.korean}$subjParticle',
+      fullKorean: fullSubj,
+      romanization: HangulSpeller.romanizeText(fullSubj),
       explanation: subjHasBatchim
           ? 'Menggunakan partikel topik "은" karena berakhiran konsonan (Batchim).'
           : 'Menggunakan partikel topik "는" karena berakhiran vokal (tanpa Batchim).',
       hasBatchim: subjHasBatchim,
-      spellingFormula: HangulSpeller.formatFormula('${foundSubject.korean}$subjParticle'),
+      spellingFormula: HangulSpeller.formatFormula(fullSubj),
     ));
 
     // Location Token (if present)
@@ -493,17 +499,18 @@ class KoreanGrammarEngine {
       final placeReason = isMovementVerb
           ? 'Partikel tujuan "에" dipakai bersama kata kerja pergerakan (${foundVerb.base}).'
           : 'Partikel "에서" menandai tempat dilakukannya kegiatan aktif.';
+      final fullPlace = '${foundPlace.korean}$placeParticle';
       tokens.add(GrammarToken(
         role: GrammarRole.location,
         label: isMovementVerb ? 'Tujuan (방향/도착)' : 'Keterangan Tempat (장소)',
         originalText: placeOriginal != null ? 'di $placeOriginal' : 'di lokasi',
         koreanCore: foundPlace.korean,
         particle: placeParticle,
-        fullKorean: '${foundPlace.korean}$placeParticle',
-        romanization: '${foundPlace.korean}$placeParticle',
+        fullKorean: fullPlace,
+        romanization: HangulSpeller.romanizeText(fullPlace),
         explanation: placeReason,
         hasBatchim: HangulSpeller.hasBatchim(foundPlace.korean),
-        spellingFormula: HangulSpeller.formatFormula('${foundPlace.korean}$placeParticle'),
+        spellingFormula: HangulSpeller.formatFormula(fullPlace),
       ));
     }
 
@@ -511,19 +518,20 @@ class KoreanGrammarEngine {
     if (foundObject != null) {
       final objHasBatchim = HangulSpeller.hasBatchim(foundObject.korean);
       final objParticle = objHasBatchim ? '을' : '를';
+      final fullObj = '${foundObject.korean}$objParticle';
       tokens.add(GrammarToken(
         role: GrammarRole.object,
         label: 'Objek (목적어)',
         originalText: objectOriginal ?? 'Objek',
         koreanCore: foundObject.korean,
         particle: objParticle,
-        fullKorean: '${foundObject.korean}$objParticle',
-        romanization: '${foundObject.korean}$objParticle',
+        fullKorean: fullObj,
+        romanization: HangulSpeller.romanizeText(fullObj),
         explanation: objHasBatchim
             ? 'Menggunakan partikel objek "을" karena kata berakhiran konsonan (Batchim).'
             : 'Menggunakan partikel objek "를" karena kata berakhiran vokal.',
         hasBatchim: objHasBatchim,
-        spellingFormula: HangulSpeller.formatFormula('${foundObject.korean}$objParticle'),
+        spellingFormula: HangulSpeller.formatFormula(fullObj),
       ));
     }
 
@@ -540,7 +548,7 @@ class KoreanGrammarEngine {
       koreanCore: foundVerb.base,
       particle: null,
       fullKorean: informalVerb,
-      romanization: foundVerb.roman,
+      romanization: HangulSpeller.romanizeText(informalVerb),
       explanation: 'Akar kata "${foundVerb.base}" dikonjugasikan ke tingkat kesopanan informal (-아요/어요/해요) dan formal (-ㅂ니다/습니다).',
       hasBatchim: HangulSpeller.hasBatchim(foundVerb.base.substring(0, foundVerb.base.length - 1)),
       spellingFormula: HangulSpeller.formatFormula(informalVerb),

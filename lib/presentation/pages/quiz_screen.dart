@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_theme.dart';
+import '../../core/engine/hangul_speller.dart';
 import '../../data/database/database_helper.dart';
 import '../../data/models/exam_model.dart';
 import '../widgets/tts_speaker_button.dart';
+import '../widgets/turtle_slow_button.dart';
 
 /// Interactive Exam Quiz Screen featuring instant visual feedback,
 /// bilingual explanations, TTS audio prompt, and local result persistence.
@@ -210,6 +212,8 @@ class _QuizScreenState extends State<QuizScreen> {
         title: Text(
           widget.package.title,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         actions: [
           // Live Score Pill
@@ -320,15 +324,34 @@ class _QuizScreenState extends State<QuizScreen> {
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: Text(
-                                      question.hangulAudioText,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? Colors.white : AppTheme.primaryDarkIndigo,
-                                      ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          question.hangulAudioText,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : AppTheme.primaryDarkIndigo,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Bacaan: [${HangulSpeller.romanizeText(question.hangulAudioText)}]',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppTheme.accentCyan,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
+                                  TurtleSlowButton(
+                                    text: question.hangulAudioText,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 4),
                                   TtsSpeakerButton(
                                     text: question.hangulAudioText,
                                     size: 18,

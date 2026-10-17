@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_theme.dart';
 import '../../core/engine/korean_grammar_engine.dart';
 import 'tts_speaker_button.dart';
+import 'turtle_slow_button.dart';
 
 /// Interactive Breakdown Card rendering SOV structure tags,
 /// particle injection rationale, and formality switching.
@@ -38,28 +39,40 @@ class _GrammarBreakdownCardState extends State<GrammarBreakdownCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: SOV Structure Badge & Audio Button
+          // Header: SOV Structure Badge & Audio Button (Overflow Safe)
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryIndigo.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                  border: Border.all(
-                    color: AppTheme.primaryIndigo.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: Text(
-                  widget.result.sovPattern,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primaryIndigo,
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryIndigo.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                      border: Border.all(
+                        color: AppTheme.primaryIndigo.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Text(
+                      widget.result.sovPattern,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primaryIndigo,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
+              TurtleSlowButton(
+                text: displayedSentence,
+                size: 20,
+              ),
+              const SizedBox(width: 4),
               TtsSpeakerButton(
                 text: displayedSentence,
                 size: 22,
@@ -69,7 +82,7 @@ class _GrammarBreakdownCardState extends State<GrammarBreakdownCard> {
           ),
           const SizedBox(height: 14),
 
-          // Main Hangul Result Banner
+          // Main Hangul Result Banner (Arti -> Cara Baca -> Aksara Hangul)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -89,6 +102,70 @@ class _GrammarBreakdownCardState extends State<GrammarBreakdownCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 1. Arti / Teks Asli
+                Row(
+                  children: [
+                    Text(
+                      'Arti: ',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? AppTheme.accentMint : const Color(0xFF065F46),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        widget.result.originalInput,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+
+                // 2. Cara Baca / Romanisasi Pelafalan
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentCyan.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'Bacaan',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.accentCyan,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '[${widget.result.getRomanizationByFormality(_currentFormality)}]',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.accentCyan,
+                          letterSpacing: 0.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // 3. Tulisan Aksara Hangul
                 Text(
                   displayedSentence,
                   style: TextStyle(
@@ -96,15 +173,6 @@ class _GrammarBreakdownCardState extends State<GrammarBreakdownCard> {
                     fontWeight: FontWeight.w800,
                     color: isDark ? Colors.white : AppTheme.primaryDarkIndigo,
                     letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.result.originalInput,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
-                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ],
@@ -284,18 +352,46 @@ class _GrammarBreakdownCardState extends State<GrammarBreakdownCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 1. Kata / Arti & Cara Baca (Romanisasi)
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          token.originalText,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '[${token.romanization}]',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.accentCyan,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+
+                  // 2. Aksara Hangul & Partikel
                   Row(
                     children: [
                       Text(
                         token.koreanCore,
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                          fontWeight: FontWeight.w800,
+                          color: badgeColor,
                         ),
                       ),
                       if (token.particle != null) ...[
-                        const SizedBox(width: 3),
+                        const SizedBox(width: 4),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                           decoration: BoxDecoration(
@@ -305,21 +401,25 @@ class _GrammarBreakdownCardState extends State<GrammarBreakdownCard> {
                           child: Text(
                             '+ ${token.particle}',
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 12,
                               fontWeight: FontWeight.w800,
                               color: AppTheme.accentCyan,
                             ),
                           ),
                         ),
-                      ],
-                      const SizedBox(width: 6),
-                      Text(
-                        '(${token.originalText})',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            '➔ ${token.fullKorean}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : AppTheme.primaryDarkIndigo,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 3),
@@ -333,6 +433,11 @@ class _GrammarBreakdownCardState extends State<GrammarBreakdownCard> {
                 ],
               ),
             ),
+            TurtleSlowButton(
+              text: token.fullKorean,
+              size: 16,
+            ),
+            const SizedBox(width: 2),
             TtsSpeakerButton(
               text: token.fullKorean,
               size: 16,

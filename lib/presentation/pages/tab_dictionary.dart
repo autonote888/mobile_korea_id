@@ -6,6 +6,7 @@ import '../../data/database/database_helper.dart';
 import '../../data/models/dictionary_item.dart';
 import '../widgets/korean_spelling_card.dart';
 import '../widgets/tts_speaker_button.dart';
+import '../widgets/turtle_slow_button.dart';
 
 /// Halaman 2: Kamus Trilingual (Korea - Indonesia - Inggris) 100% Offline.
 class TabDictionary extends StatefulWidget {
@@ -103,7 +104,7 @@ class _TabDictionaryState extends State<TabDictionary> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Header with Hangul & TTS
+                  // Header with Hangul, Reading & Audio Buttons
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -121,10 +122,10 @@ class _TabDictionaryState extends State<TabDictionary> {
                               ),
                             ),
                             Text(
-                              '[${item.koreanRoman}]',
+                              'Bacaan: [${item.koreanRoman}]',
                               style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
                                 color: AppTheme.accentCyan,
                               ),
                             ),
@@ -148,6 +149,8 @@ class _TabDictionaryState extends State<TabDictionary> {
                         ),
                       ),
                       const SizedBox(width: 8),
+                      TurtleSlowButton(text: item.koreanHangul, size: 22),
+                      const SizedBox(width: 4),
                       TtsSpeakerButton(text: item.koreanHangul, size: 24),
                     ],
                   ),
@@ -337,30 +340,36 @@ class _TabDictionaryState extends State<TabDictionary> {
                           size: 20,
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Kamus Trilingual Offline',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
-                              letterSpacing: -0.3,
-                            ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Kamus Trilingual Offline',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                                  letterSpacing: -0.3,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                'Bahasa Korea • Indonesia • Inggris (${_items.length} kosakata)',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
-                          Text(
-                            'Bahasa Korea • Indonesia • Inggris (${_items.length} kosakata)',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: 14),
 
                   // Search Bar with Debounce
@@ -495,81 +504,99 @@ class _TabDictionaryState extends State<TabDictionary> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    // Korean Hangul and Romanization
-                                    SizedBox(
-                                      width: 100,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item.koreanHangul,
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w800,
-                                              color: isDark ? Colors.white : AppTheme.primaryDarkIndigo,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            item.koreanRoman,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: AppTheme.accentCyan,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    // Translations
+                                    // 1. Text Info: Arti -> Bacaan [roman] -> Aksara Hangul
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            item.indonesian,
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                              color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                          // Baris 1: Arti (ID) & Bacaan (Romanisasi)
+                                          Row(
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  item.indonesian,
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                                decoration: BoxDecoration(
+                                                  color: AppTheme.accentCyan.withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  '[${item.koreanRoman}]',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: AppTheme.accentCyan,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            item.english,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                          const SizedBox(height: 3),
+
+                                          // Baris 2: Aksara Hangul & Bahasa Inggris
+                                          Row(
+                                            children: [
+                                              Text(
+                                                item.koreanHangul,
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: isDark ? Colors.white : AppTheme.primaryDarkIndigo,
+                                                  letterSpacing: -0.3,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Flexible(
+                                                child: Text(
+                                                  item.english,
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
                                     ),
 
-                                    // POS Badge & TTS Button
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: posColor.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(color: posColor.withValues(alpha: 0.3)),
-                                      ),
-                                      child: Text(
-                                        item.pos,
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w700,
-                                          color: posColor,
+                                    // 2. Right Side: POS Badge + TurtleSlowButton + TtsSpeakerButton
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                                          decoration: BoxDecoration(
+                                            color: posColor.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: posColor.withValues(alpha: 0.3)),
+                                          ),
+                                          child: Text(
+                                            item.pos,
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w700,
+                                              color: posColor,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        const SizedBox(width: 2),
+                                        TurtleSlowButton(text: item.koreanHangul, size: 17),
+                                        TtsSpeakerButton(text: item.koreanHangul, size: 18),
+                                      ],
                                     ),
-                                    const SizedBox(width: 4),
-                                    TtsSpeakerButton(text: item.koreanHangul, size: 18),
                                   ],
                                 ),
                               ),

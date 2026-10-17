@@ -55,6 +55,12 @@ void main() {
       expect(HangulSpeller.getInstrumentParticle('집'), '으로'); // consonant ending -> 으로
       expect(HangulSpeller.getInstrumentParticle('밥'), '으로');
     });
+
+    test('Romanizes Hangul text accurately: 빵 -> ppang, 밥 -> bap, 사과 -> sagwa', () {
+      expect(HangulSpeller.romanizeText('빵'), 'ppang');
+      expect(HangulSpeller.romanizeText('밥'), 'bap');
+      expect(HangulSpeller.romanizeText('사과'), 'sagwa');
+    });
   });
 
   group('KoreanGrammarEngine Deterministic SOV Tests', () {

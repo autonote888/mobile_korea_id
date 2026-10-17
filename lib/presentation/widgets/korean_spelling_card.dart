@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../core/constants/app_theme.dart';
 import '../../core/engine/hangul_speller.dart';
 import 'tts_speaker_button.dart';
+import 'turtle_slow_button.dart';
 
 /// Interactive Card displaying the Unicode Syllable Decomposition
 /// [초성 + 중성 + 종성 = 음절] with zero memory overhead.
@@ -62,8 +63,11 @@ class KoreanSpellingCard extends StatelessWidget {
                     color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
                     letterSpacing: -0.2,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              TurtleSlowButton(text: hangulText, size: 18),
               TtsSpeakerButton(text: hangulText, size: 18),
               IconButton(
                 icon: const Icon(Icons.copy_rounded, size: 16),

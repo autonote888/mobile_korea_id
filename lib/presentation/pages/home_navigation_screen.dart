@@ -34,34 +34,39 @@ class _HomeNavigationScreenState extends State<HomeNavigationScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 16,
         title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
               decoration: BoxDecoration(
                 color: AppTheme.primaryIndigo,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(6),
               ),
               child: const Text(
                 '한국어',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ),
             const SizedBox(width: 8),
-            const Text(
-              'Korean Master',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            const Flexible(
+              child: Text(
+                'Korean Master',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
         actions: [
           // Offline Badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
             decoration: BoxDecoration(
               color: AppTheme.accentMint.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppTheme.radiusFull),
@@ -70,10 +75,10 @@ class _HomeNavigationScreenState extends State<HomeNavigationScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: const [
-                Icon(Icons.offline_bolt_rounded, size: 13, color: AppTheme.accentMint),
-                SizedBox(width: 4),
+                Icon(Icons.offline_bolt_rounded, size: 12, color: AppTheme.accentMint),
+                SizedBox(width: 3),
                 Text(
-                  '100% Offline',
+                  'Offline',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -83,10 +88,8 @@ class _HomeNavigationScreenState extends State<HomeNavigationScreen> {
               ],
             ),
           ),
-          const SizedBox(width: 8),
-
-          // Theme Toggle Button
-          if (widget.onThemeToggle != null)
+          if (widget.onThemeToggle != null) ...[
+            const SizedBox(width: 2),
             IconButton(
               icon: Icon(
                 isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
@@ -98,6 +101,7 @@ class _HomeNavigationScreenState extends State<HomeNavigationScreen> {
                 widget.onThemeToggle!(newMode);
               },
             ),
+          ],
           const SizedBox(width: 8),
         ],
       ),

@@ -108,26 +108,32 @@ class _TabExamLevelsState extends State<TabExamLevels> {
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Latihan Ujian Bertingkat',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w800,
-                                      color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
-                                      letterSpacing: -0.3,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Latihan Ujian Bertingkat',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                                        letterSpacing: -0.3,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ),
-                                  Text(
-                                    'Level 1 Dasar s.d. Level 4 Standar TOPIK',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+                                    Text(
+                                      'Level 1 Dasar s.d. Level 4 Standar TOPIK',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),

@@ -121,6 +121,22 @@ class HangulSpeller {
     return decompositions.map((d) => d.formula).join(' ');
   }
 
+  /// Converts Hangul text to Revised Romanization reading (e.g. "빵" -> "ppang", "밥" -> "bap").
+  static String romanizeText(String text) {
+    if (text.isEmpty) return text;
+    final buffer = StringBuffer();
+    for (int i = 0; i < text.length; i++) {
+      final char = text[i];
+      final decomp = decomposeChar(char);
+      if (decomp != null) {
+        buffer.write(decomp.romanization);
+      } else {
+        buffer.write(char);
+      }
+    }
+    return buffer.toString();
+  }
+
   /// Returns true if the final Hangul syllable of [word] has a Batchim (종성).
   ///
   /// Example:

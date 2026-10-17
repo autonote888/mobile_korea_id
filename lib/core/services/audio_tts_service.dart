@@ -12,13 +12,18 @@ class AudioTtsService extends ChangeNotifier {
   final FlutterTts _flutterTts = FlutterTts();
 
   bool _isSpeaking = false;
+  static const double normalSpeechRate = 0.45;
+  static const double slowSpeechRate = 0.22; // Mode Kura-kura (Slow)
+
   String _currentText = '';
-  double _speechRate = 0.45; // Slower, comfortable for Korean learners
+  double _speechRate = normalSpeechRate;
+  bool _isSlowMode = false;
   final double _volume = 1.0;
   final double _pitch = 1.0;
   String _currentLanguage = 'ko-KR';
 
   bool get isSpeaking => _isSpeaking;
+  bool get isSlowMode => _isSlowMode;
   String get currentText => _currentText;
   double get speechRate => _speechRate;
 
@@ -36,12 +41,14 @@ class AudioTtsService extends ChangeNotifier {
 
       _flutterTts.setCompletionHandler(() {
         _isSpeaking = false;
+        _isSlowMode = false;
         _currentText = '';
         notifyListeners();
       });
 
       _flutterTts.setCancelHandler(() {
         _isSpeaking = false;
+        _isSlowMode = false;
         _currentText = '';
         notifyListeners();
       });
@@ -49,6 +56,7 @@ class AudioTtsService extends ChangeNotifier {
       _flutterTts.setErrorHandler((msg) {
         if (kDebugMode) print('[AudioTtsService] TTS error: $msg');
         _isSpeaking = false;
+        _isSlowMode = false;
         _currentText = '';
         notifyListeners();
       });
@@ -57,18 +65,19 @@ class AudioTtsService extends ChangeNotifier {
     }
   }
 
-  /// Speaks Korean text offline using device TTS engine.
+  /// Speaks Korean text offline using device TTS engine at normal speed.
   Future<void> speakKorean(String text) async {
     if (text.trim().isEmpty) return;
     try {
-      if (_isSpeaking && _currentText == text) {
+      if (_isSpeaking && _currentText == text && !_isSlowMode) {
         await stop();
         return;
       }
       await stop();
+      _isSlowMode = false;
       _currentLanguage = 'ko-KR';
       await _flutterTts.setLanguage('ko-KR');
-      await _flutterTts.setSpeechRate(_speechRate);
+      await _flutterTts.setSpeechRate(normalSpeechRate);
       _currentText = text;
       _isSpeaking = true;
       notifyListeners();
@@ -76,6 +85,32 @@ class AudioTtsService extends ChangeNotifier {
     } catch (e) {
       if (kDebugMode) print('[AudioTtsService] Error speaking Korean: $e');
       _isSpeaking = false;
+      _isSlowMode = false;
+      notifyListeners();
+    }
+  }
+
+  /// Speaks Korean text in slow mode (Mode Kura-kura) at reduced speed.
+  Future<void> speakKoreanSlow(String text) async {
+    if (text.trim().isEmpty) return;
+    try {
+      if (_isSpeaking && _currentText == text && _isSlowMode) {
+        await stop();
+        return;
+      }
+      await stop();
+      _isSlowMode = true;
+      _currentLanguage = 'ko-KR';
+      await _flutterTts.setLanguage('ko-KR');
+      await _flutterTts.setSpeechRate(slowSpeechRate);
+      _currentText = text;
+      _isSpeaking = true;
+      notifyListeners();
+      await _flutterTts.speak(text);
+    } catch (e) {
+      if (kDebugMode) print('[AudioTtsService] Error speaking Korean slow: $e');
+      _isSpeaking = false;
+      _isSlowMode = false;
       notifyListeners();
     }
   }

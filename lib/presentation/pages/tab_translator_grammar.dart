@@ -19,6 +19,7 @@ class _TabTranslatorGrammarState extends State<TabTranslatorGrammar> {
 
   final List<String> _quickTemplates = [
     'Saya makan nasi',
+    'Saya makan roti',
     'Budi membaca buku di perpustakaan',
     'Saya pergi ke sekolah',
     'Adik minum susu',
@@ -68,7 +69,7 @@ class _TabTranslatorGrammarState extends State<TabTranslatorGrammar> {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // App Bar Title
+            // App Bar Title (Overflow Safe)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -90,26 +91,32 @@ class _TabTranslatorGrammarState extends State<TabTranslatorGrammar> {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Struktur SOV & Parser Tata Bahasa',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
-                                letterSpacing: -0.3,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Struktur SOV & Parser Tata Bahasa',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                                  letterSpacing: -0.3,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            Text(
-                              'Transformasi Otomatis S-V-O ke S-O-V Korea',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+                              Text(
+                                'Transformasi Otomatis S-V-O ke S-O-V Korea',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     ),
