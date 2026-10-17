@@ -29,18 +29,21 @@ class _TabDictionaryState extends State<TabDictionary> {
   String _selectedCategory = 'Semua Kegiatan';
   String _selectedPos = 'Semua';
 
-  final List<String> _categoryFilters = [
+  List<String> _categoryFilters = [
     'Semua Kegiatan',
     'Perkenalan Diri',
     'Kata Ganti & Sosial',
+    'Restoran & Makan',
     'Belanja & Supermarket',
     'Tidur & Rutinitas',
     'Arah & Jalan',
-    'Restoran & Makan',
     'Transportasi',
-    'Kesehatan & Darurat',
     'Kantor & Belajar',
+    'Kesehatan & Darurat',
+    'Pakaian & Warna',
     'Emosi & Cuaca',
+    'Kata Kerja (Aksi)',
+    'Kata Sifat (Sifat & Rasa)',
     'Percakapan Umum',
     'Tata Bahasa & Partikel',
   ];
@@ -54,12 +57,26 @@ class _TabDictionaryState extends State<TabDictionary> {
     'Adverb',
     'Phrase',
     'Particle',
+    'Conjunction',
   ];
 
   @override
   void initState() {
     super.initState();
+    _loadCategories();
     _loadDictionary();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final dbCategories = await DatabaseHelper.instance.getAllActivityCategories();
+      if (mounted && dbCategories.isNotEmpty) {
+        setState(() {
+          final Set<String> merged = {'Semua Kegiatan', ...dbCategories};
+          _categoryFilters = merged.toList();
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -79,11 +96,18 @@ class _TabDictionaryState extends State<TabDictionary> {
   Future<void> _loadDictionary() async {
     setState(() => _isLoading = true);
     final query = _searchController.text.trim();
-    final results = await DatabaseHelper.instance.searchDictionary(
+    var results = await DatabaseHelper.instance.searchDictionary(
       query,
       posFilter: _selectedPos,
       categoryFilter: _selectedCategory,
     );
+    // Self-healing check: if initial query is empty and no results found, force seed from assets/sql/init.sql
+    if (results.isEmpty && query.isEmpty && _selectedCategory == 'Semua Kegiatan' && _selectedPos == 'Semua') {
+      try {
+        await DatabaseHelper.instance.forceReloadDictionary();
+        results = await DatabaseHelper.instance.searchDictionary('', posFilter: 'Semua', categoryFilter: 'Semua Kegiatan');
+      } catch (_) {}
+    }
     if (mounted) {
       setState(() {
         _items = results;
@@ -384,6 +408,12 @@ class _TabDictionaryState extends State<TabDictionary> {
         return const Color(0xFF10B981);
       case 'Emosi & Cuaca':
         return const Color(0xFFF59E0B);
+      case 'Pakaian & Warna':
+        return const Color(0xFFEC4899);
+      case 'Kata Kerja (Aksi)':
+        return AppTheme.predicateColor;
+      case 'Kata Sifat (Sifat & Rasa)':
+        return const Color(0xFFF97316);
       case 'Percakapan Umum':
         return AppTheme.primaryDarkIndigo;
       case 'Tata Bahasa & Partikel':
@@ -409,6 +439,8 @@ class _TabDictionaryState extends State<TabDictionary> {
         return AppTheme.accentAmber;
       case 'Adverb':
         return const Color(0xFF8B5CF6);
+      case 'Conjunction':
+        return const Color(0xFF06B6D4);
       default:
         return AppTheme.primaryIndigo;
     }
@@ -622,6 +654,29 @@ class _TabDictionaryState extends State<TabDictionary> {
                                 'Tidak ada kosakata yang cocok',
                                 style: TextStyle(
                                   color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              ElevatedButton.icon(
+                                onPressed: () async {
+                                  setState(() => _isLoading = true);
+                                  await DatabaseHelper.instance.forceReloadDictionary();
+                                  _loadDictionary();
+                                },
+                                icon: const Icon(Icons.refresh_rounded, size: 16),
+                                label: const Text('Segarkan Database Kamus (1.250+ Kata)'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryIndigo,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
                             ],

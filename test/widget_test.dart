@@ -1,8 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_korea_id/core/engine/hangul_speller.dart';
 import 'package:mobile_korea_id/core/engine/korean_grammar_engine.dart';
 import 'package:mobile_korea_id/data/models/dictionary_item.dart';
+import 'package:mobile_korea_id/data/models/exam_model.dart';
 import 'package:mobile_korea_id/data/repositories/standard_practice_repository.dart';
+import 'package:mobile_korea_id/presentation/pages/tab_translator_grammar.dart';
+import 'package:mobile_korea_id/presentation/pages/home_navigation_screen.dart';
 
 void main() {
   group('HangulSpeller Unicode Mathematical Deconstructor Tests', () {
@@ -164,4 +168,129 @@ void main() {
       expect(searchFood.isNotEmpty, isTrue);
     });
   });
+
+  group('Exam Models & Safe Null Tests', () {
+    test('ExamPackage handles null bestPercentage safely without assertions', () {
+      final pkg = ExamPackage(
+        id: 1,
+        title: 'Level 1: Hangeul & TOPIK I',
+        level: 1,
+        totalQuestions: 15,
+        bestScore: 12,
+        bestPercentage: null,
+      );
+
+      expect(pkg.bestScore, 12);
+      expect(pkg.bestPercentage, isNull);
+
+      final safePct = pkg.bestPercentage ??
+          (pkg.totalQuestions > 0 && pkg.bestScore != null
+              ? (pkg.bestScore! / pkg.totalQuestions) * 100.0
+              : 0.0);
+      expect(safePct, 80.0);
+      expect(safePct >= 80.0, isTrue);
+    });
+
+    test('ExamQuestion maps and deserializes accurately', () {
+      final question = ExamQuestion(
+        id: 1,
+        packageId: 1,
+        type: 'dialog_origin',
+        question: '어느 나라 사람입니까?',
+        hangulAudioText: '인도네시아 사람입니다.',
+        optionA: '인도네시아 사람입니다',
+        optionB: '한국어 공부해요',
+        optionC: '감사합니다',
+        optionD: '네, 있어요',
+        correctAnswer: 'A',
+        explanationId: 'Pertanyaan menanyakan asal negara.',
+        explanationEn: 'The question asks about nationality.',
+      );
+
+      expect(question.getOptionByLetter('A'), '인도네시아 사람입니다');
+      expect(question.correctAnswer, 'A');
+    });
+  });
+
+  group('UI Overflow Safe Tests', () {
+    testWidgets('TabTranslatorGrammar renders without overflow on 360x640 mobile screen', (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: TabTranslatorGrammar(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Struktur SOV & Parser Tata Bahasa'), findsOneWidget);
+    });
+
+    testWidgets('TabTranslatorGrammar renders long sentence without overflow', (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: TabTranslatorGrammar(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Enter a long sentence with location
+      await tester.enterText(find.byType(TextField), 'Budi membaca buku di perpustakaan');
+      await tester.tap(find.text('Enter'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('도서관'), findsWidgets);
+    });
+
+    testWidgets('HomeNavigationScreen renders on 360x640 without AppBar overflow', (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: HomeNavigationScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Korean Master'), findsOneWidget);
+    });
+
+    testWidgets('TabTranslatorGrammar renders on 320x480 ultra-compact screen without overflow', (tester) async {
+      tester.view.physicalSize = const Size(320, 480);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: TabTranslatorGrammar(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'Saya membeli obat di apotek');
+      await tester.tap(find.text('Enter'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('약국'), findsWidgets);
+    });
+  });
 }
+

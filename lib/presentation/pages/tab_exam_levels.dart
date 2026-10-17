@@ -202,156 +202,191 @@ class _TabExamLevelsState extends State<TabExamLevels> {
                   ),
 
                   // Packages List
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final package = _packages[index];
-                          final levelColor = _getLevelColor(package.level);
-                          final hasScore = package.bestScore != null;
-
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 14.0),
-                            child: InkWell(
-                              onTap: () => _startQuiz(package),
-                              borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                              child: Container(
-                                padding: const EdgeInsets.all(18),
-                                decoration: BoxDecoration(
-                                  color: isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
-                                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                                  border: Border.all(
-                                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                                  ),
-                                  boxShadow: AppTheme.cardShadow,
+                  if (_packages.isEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.quiz_outlined, size: 48, color: Colors.grey),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Paket ujian belum siap atau sedang dimuat.',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: _loadPackages,
+                                icon: const Icon(Icons.refresh_rounded),
+                                label: const Text('Muat Ulang Soal'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryIndigo,
+                                  foregroundColor: Colors.white,
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        // Level Number Badge
-                                        Container(
-                                          width: 44,
-                                          height: 44,
-                                          decoration: BoxDecoration(
-                                            color: levelColor.withValues(alpha: 0.12),
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(color: levelColor.withValues(alpha: 0.3)),
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              'Lv.${package.level}',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w800,
-                                                color: levelColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final package = _packages[index];
+                            final levelColor = _getLevelColor(package.level);
+                            final hasScore = package.bestScore != null;
+                            final double bestPct = package.bestPercentage ??
+                                (package.totalQuestions > 0 && package.bestScore != null
+                                    ? (package.bestScore! / package.totalQuestions) * 100.0
+                                    : 0.0);
+                            final bool isHighScore = bestPct >= 80.0;
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 14.0),
+                              child: InkWell(
+                                onTap: () => _startQuiz(package),
+                                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                child: Container(
+                                  padding: const EdgeInsets.all(18),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
+                                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                    border: Border.all(
+                                      color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                                    ),
+                                    boxShadow: AppTheme.cardShadow,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Level Number Badge
+                                          Container(
+                                            width: 44,
+                                            height: 44,
+                                            decoration: BoxDecoration(
+                                              color: levelColor.withValues(alpha: 0.12),
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: levelColor.withValues(alpha: 0.3)),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                'Lv.${package.level}',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: levelColor,
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        // Package Title & Subtitle
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                package.title,
-                                                style: TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                                          const SizedBox(width: 12),
+                                          // Package Title & Subtitle
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  package.title,
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                                                  ),
                                                 ),
+                                                const SizedBox(height: 3),
+                                                Text(
+                                                  _getLevelSubtitle(package.level),
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    height: 1.3,
+                                                    color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                                        ],
+                                      ),
+                                      const Divider(height: 22),
+
+                                      // Bottom Info Row: Total questions & Best score
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.quiz_outlined,
+                                                size: 15,
+                                                color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
                                               ),
-                                              const SizedBox(height: 3),
+                                              const SizedBox(width: 5),
                                               Text(
-                                                _getLevelSubtitle(package.level),
+                                                '${package.totalQuestions} Soal Ujian',
                                                 style: TextStyle(
-                                                  fontSize: 11,
-                                                  height: 1.3,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
                                                   color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
                                                 ),
                                               ),
                                             ],
                                           ),
-                                        ),
-                                        const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-                                      ],
-                                    ),
-                                    const Divider(height: 22),
-
-                                    // Bottom Info Row: Total questions & Best score
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.quiz_outlined,
-                                              size: 15,
-                                              color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
-                                            ),
-                                            const SizedBox(width: 5),
+                                          if (hasScore)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: (isHighScore ? AppTheme.accentMint : AppTheme.accentAmber).withValues(alpha: 0.12),
+                                                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.star_rounded,
+                                                    size: 14,
+                                                    color: isHighScore ? AppTheme.accentMint : AppTheme.accentAmber,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Terbaik: ${package.bestScore}/${package.totalQuestions} (${bestPct.toStringAsFixed(0)}%)',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: isHighScore ? AppTheme.accentMint : AppTheme.accentAmber,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            )
+                                          else
                                             Text(
-                                              '${package.totalQuestions} Soal Ujian',
+                                              'Belum dikerjakan',
                                               style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                                color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+                                                fontSize: 11,
+                                                color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                                                fontStyle: FontStyle.italic,
                                               ),
                                             ),
-                                          ],
-                                        ),
-                                        if (hasScore)
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                            decoration: BoxDecoration(
-                                              color: (package.bestPercentage! >= 80 ? AppTheme.accentMint : AppTheme.accentAmber).withValues(alpha: 0.12),
-                                              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.star_rounded,
-                                                  size: 14,
-                                                  color: package.bestPercentage! >= 80 ? AppTheme.accentMint : AppTheme.accentAmber,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  'Terbaik: ${package.bestScore}/${package.totalQuestions} (${package.bestPercentage!.toStringAsFixed(0)}%)',
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: package.bestPercentage! >= 80 ? AppTheme.accentMint : AppTheme.accentAmber,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          )
-                                        else
-                                          Text(
-                                            'Belum dikerjakan',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
-                                              fontStyle: FontStyle.italic,
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                        childCount: _packages.length,
+                            );
+                          },
+                          childCount: _packages.length,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
       ),
